@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pokladna Vstup">
+    <link rel="apple-touch-icon" href="https://hcvlasim.esports.cz/files/editor/Hlavni%20logo.png">
+    <title>Pokladna VSTUP - HC Vlašim</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --vlasim-blue: #196db6; 
+            --vlasim-white: #ffffff; 
+            --bg: #f4f7f6; 
+            --text-dark: #1a1d21; 
+            --green: #2ecc71; 
+            --red: #e74c3c;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding-top: env(safe-area-inset-top); }
+        
+        #login { position: fixed; inset: 0; background: var(--vlasim-blue); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { background: var(--vlasim-white); padding: 40px 20px; border-radius: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .login-box h2 { color: var(--vlasim-blue); font-weight: 900; margin-bottom: 20px; }
+        #kInput { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 15px; font-size: 1.8rem; text-align: center; margin-bottom: 20px; font-weight: 900; color: var(--vlasim-blue); text-transform: uppercase; }
+        
+        header { background: var(--vlasim-white); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--vlasim-blue); }
+        .match-info span { font-size: 0.7rem; font-weight: 700; color: #7f8c8d; text-transform: uppercase; }
+        .match-info b { display: block; font-size: 1.1rem; color: var(--vlasim-blue); font-weight: 900; }
+        .club-logo { height: 40px; }
+        
+        .grid { flex: 1; overflow-y: auto; padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-content: start; }
+        .p-card { background: var(--vlasim-white); border-radius: 20px; padding: 15px; text-align: center; border: 1px solid #eef2f5; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .p-card:active { transform: scale(0.95); background: #fbfdff; }
+        .p-card i { font-size: 2.5rem; color: var(--vlasim-blue); margin-bottom: 8px; display: block; }
+        .p-card b { display: block; font-size: 0.9rem; height: 34px; overflow: hidden; margin-bottom: 5px; line-height: 1.2; font-weight: 700; }
+        .p-price { font-weight: 900; color: var(--vlasim-blue); font-size: 1.4rem; }
+        
+        .cart { background: var(--vlasim-white); border-radius: 30px 30px 0 0; box-shadow: 0 -5px 25px rgba(0,0,0,0.1); padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+        .cart-list { max-height: 180px; overflow-y: auto; margin-bottom: 15px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 15px; margin-bottom: 8px; border: 1px solid #f1f4f6; }
+        .item-controls { display: flex; align-items: center; gap: 12px; }
+        .btn-minus { color: var(--red); font-size: 1.4rem; cursor: pointer; padding: 5px; }
+        
+        .total-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
+        .total-val { font-size: 2.4rem; font-weight: 900; color: var(--vlasim-blue); letter-spacing: -1px; }
+        .pay-btn { width: 100%; padding: 20px; border: none; border-radius: 18px; color: white; font-weight: 900; font-size: 1.2rem; cursor: pointer; background: var(--green); text-transform: uppercase; }
+        .pay-btn:disabled { background: #bdc3c7; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+<div id="login">
+    <div class="login-box">
+        <img src="https://hcvlasim.esports.cz/files/editor/Hlavni%20logo.png" style="height: 80px; margin-bottom: 20px;">
+        <h2>POKLADNA VSTUP</h2>
+        <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 15px;">Zadejte přístupový kód zápasu</p>
+        <input type="text" id="kInput" placeholder="KÓD" inputmode="text">
+        <button class="pay-btn" style="background: var(--vlasim-blue)" onclick="tryLogin()">VSTOUPIT</button>
+    </div>
+</div>
+
+<header>
+    <div class="match-info">
+        <span>Zápas:</span>
+        <b id="mLabel">---</b>
+    </div>
+    <img src="https://hcvlasim.esports.cz/files/editor/Hlavni%20logo.png" class="club-logo">
+</header>
+
+<div class="grid" id="pGrid"></div>
+
+<div class="cart">
+    <div class="cart-list" id="cList"></div>
+    <div class="total-row">
+        <div>
+            <div style="font-size: 0.7rem; font-weight: 800; color: #7f8c8d; text-transform: uppercase;">Celkem za vstupné</div>
+            <div class="total-val" id="totalPrice">0 Kč</div>
+        </div>
+        <button onclick="clearCart()" style="background: #fee2e2; border: none; color: var(--red); padding: 8px 15px; border-radius: 10px; font-weight: 800; font-size: 0.7rem;">VYMAZAT</button>
+    </div>
+    <button class="pay-btn" id="btnFinish" onclick="finishSale()" disabled>POTVRDIT PRODEJ</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, collection, addDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3l9DlvXV5Nv3FKJxHidfTIoWV-jUv4Bw",
+        authDomain: "vlasimmerch.firebaseapp.com",
+        projectId: "vlasimmerch",
+        storageBucket: "vlasimmerch.firebasestorage.app",
+        messagingSenderId: "830271449130",
+        appId: "1:830271449130:web:a64c16b612c72e5f1f3b53"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let cart = []; 
+    let tickets = []; 
+    let matchName = "";
+
+    // HLÍDAČ AKTIVNÍHO ZÁPASU - Uzamkne aplikaci, pokud zápas skončí
+    onSnapshot(doc(db, "nastaveni", "aktivni_zapas"), (s) => {
+        const loginScreen = document.getElementById("login");
+        const currentLocalToken = localStorage.getItem("pokladna_token_vstup");
+        
+        if(s.exists()){
+            const d = s.data();
+            matchName = d.nazev;
+            document.getElementById("mLabel").innerText = matchName;
+            
+            // Pokud se kód v DB změnil nebo neodpovídá, vyhodit na login
+            if(currentLocalToken !== d.kod) { 
+                lockApp(); 
+            } else { 
+                loginScreen.style.display = "none"; 
+            }
+        } else { 
+            // Dokument s aktivním zápasem byl smazán v Admin panelu
+            lockApp(); 
+        }
+    });
+
+    function lockApp() {
+        localStorage.removeItem("pokladna_token_vstup");
+        document.getElementById("login").style.display = "flex";
+        document.getElementById("mLabel").innerText = "Žádný aktivní zápas";
+        cart = []; 
+        render();
+    }
+
+    window.tryLogin = async () => {
+        const val = document.getElementById("kInput").value.toUpperCase().trim();
+        const s = await getDoc(doc(db, "nastaveni", "aktivni_zapas"));
+        if(s.exists() && s.data().kod === val) {
+            localStorage.setItem("pokladna_token_vstup", val);
+            document.getElementById("login").style.display = "none";
+            document.getElementById("kInput").value = "";
+        } else { 
+            alert("Neplatný kód nebo zápas již není aktivní!"); 
+        }
+    };
+
+    onSnapshot(collection(db, "vstupenky"), (s) => {
+        const g = document.getElementById("pGrid"); 
+        g.innerHTML = ""; 
+        tickets = [];
+        s.forEach(d => {
+            const t = d.data(); 
+            tickets.push(t);
+            g.innerHTML += `
+            <div class="p-card" onclick="add('${t.name}')">
+                <i class="fa-solid ${t.icon || 'fa-ticket'}"></i>
+                <b>${t.name}</b><div class="p-price">${t.price} Kč</div>
+            </div>`;
+        });
+    });
+
+    window.add = (name) => {
+        const t = tickets.find(x => x.name === name);
+        const ex = cart.find(x => x.name === name);
+        if(ex) ex.qty++; else cart.push({...t, qty: 1});
+        render();
+        if(navigator.vibrate) navigator.vibrate(10);
+    };
+
+    window.removeItem = (name) => {
+        const idx = cart.findIndex(x => x.name === name);
+        if (idx > -1) {
+            if (cart[idx].qty > 1) cart[idx].qty--;
+            else cart.splice(idx, 1);
+        }
+        render();
+    };
+
+    window.clearCart = () => { if(cart.length > 0) { cart = []; render(); } };
+
+    window.render = () => {
+        const l = document.getElementById("cList");
+        let total = 0;
+        if(cart.length === 0) {
+            l.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Vyberte vstupné</div>';
+        } else {
+            l.innerHTML = cart.map(i => {
+                total += (i.price * i.qty);
+                return `
+                <div class="cart-item">
+                    <span><b>${i.qty}x</b> ${i.name}</span>
+                    <div class="item-controls">
+                        <b>${i.price * i.qty} Kč</b>
+                        <div class="btn-minus" onclick="removeItem('${i.name}')"><i class="fa-solid fa-circle-minus"></i></div>
+                    </div>
+                </div>`;
+            }).join("");
+        }
+        document.getElementById("totalPrice").innerText = total.toLocaleString() + " Kč";
+        document.getElementById("btnFinish").disabled = (cart.length === 0);
+    };
+
+    window.finishSale = async () => {
+        const total = cart.reduce((a,b) => a + (b.price*b.qty), 0);
+        try {
+            await addDoc(collection(db, "objednavky"), {
+                polozky: cart,
+                celkem: total,
+                zapas: matchName,
+                typ: "vstupenka",
+                vytvoreno: serverTimestamp()
+            });
+            cart = []; render(); 
+            alert("Vstupenky prodány!");
+        } catch (e) { alert("Chyba při ukládání!"); }
+    };
+</script>
+</body>
+</html>
